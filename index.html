@@ -3,47 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>DuoBoard — Chess &amp; Go Coach</title>
+<title>DuoBoard — Chess &amp; Go</title>
 <style>
   :root{
-    --bg:#12151a; --panel:#171a20; --panel2:#21262e; --line:#262b33;
-    --text:#e8ecf1; --muted:#8b95a5;
-    --best:#7cc36a; --good:#7cc36a; --inacc:#e6b455; --mist:#e08a3c; --blund:#e05c5c; --info:#8b95a5;
+    --bg:#0f1216; --panel:#171a20; --panel2:#21262e; --line:#262b33;
+    --text:#e8ecf1; --muted:#8b95a5; --accent:#7cc36a;
+    --best:#7cc36a; --good:#7cc36a; --inacc:#e6b455; --mist:#e08a3c; --blund:#e05c5c;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;height:100%;}
   body{
-    background:radial-gradient(1400px 900px at 15% -15%,#1e2530 0%,#101317 55%,#0b0d10 100%);
+    background:radial-gradient(1400px 900px at 15% -15%,#1e2530 0%,#0f1217 55%,#08090c 100%);
     color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    height:100vh; display:flex; flex-direction:column; overflow:hidden;
+    height:100vh; overflow:hidden;
   }
 
-  header{
-    display:flex;align-items:center;justify-content:space-between;padding:11px 18px;
-    border-bottom:1px solid var(--line);background:rgba(20,24,30,.72);
-    backdrop-filter:blur(8px);flex-shrink:0;gap:14px;flex-wrap:wrap;
+  /* ---------- Screens ---------- */
+  .screen{display:none;position:fixed;inset:0;}
+  .screen.active{display:flex;}
+
+  /* Home / Setup shared look */
+  #screen-home, #screen-setup{
+    flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:26px;
   }
-  .brand{font-size:17px;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:9px;}
-  .brand .logo{font-size:21px;}
-  .brand .accent{color:#7cc36a;}
-  .hgroup{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-  .segmented{display:flex;background:#0e1116;border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px;}
-  .seg{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:13px;
-       padding:7px 16px;border-radius:8px;cursor:pointer;transition:.18s;white-space:nowrap;}
-  .seg:hover{color:var(--text);}
-  .seg.active{background:#2b323d;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);}
-  .seg-label{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:#5a6474;font-weight:800;}
+  .hero{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
+  .hero-logo{
+    width:96px;height:96px;border-radius:26px;display:flex;align-items:center;justify-content:center;
+    font-size:52px;background:linear-gradient(145deg,#2a3340,#181d25);
+    box-shadow:0 20px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .hero-title{font-size:36px;font-weight:900;letter-spacing:-1px;margin:0;}
+  .hero-title .accent{color:var(--accent);}
+  .hero-sub{color:var(--muted);font-size:15px;max-width:420px;line-height:1.5;margin:0;}
+  .btn-primary{
+    border:0;background:var(--accent);color:#0c1014;font:inherit;font-weight:800;font-size:16px;
+    padding:15px 40px;border-radius:14px;cursor:pointer;transition:.18s;letter-spacing:.2px;
+    box-shadow:0 12px 26px rgba(124,195,106,.32);
+  }
+  .btn-primary:hover{background:#8ed47b;transform:translateY(-2px);box-shadow:0 16px 32px rgba(124,195,106,.42);}
+  .btn-primary:active{transform:translateY(0);}
+  .btn-secondary{
+    border:1px solid #2e3540;background:transparent;color:#c3ccd8;font:inherit;font-weight:700;
+    font-size:14px;padding:11px 22px;border-radius:11px;cursor:pointer;transition:.15s;
+  }
+  .btn-secondary:hover{background:#1d222a;border-color:#3d4654;}
+
+  /* Setup screen */
+  .setup-card{
+    width:min(460px,100%);background:linear-gradient(180deg,#1c2129,#151920);
+    border:1px solid #2a303a;border-radius:22px;padding:28px;
+    box-shadow:0 30px 70px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:22px;
+  }
+  .setup-title{font-size:20px;font-weight:800;letter-spacing:-.2px;margin:0 0 2px;}
+  .setup-group{display:flex;flex-direction:column;gap:10px;}
+  .setup-label{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:800;}
+  .chip-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .chip-row.three{grid-template-columns:1fr 1fr 1fr;}
+  .chip{
+    border:1px solid #2e3540;background:#1a1f27;color:#c3ccd8;font:inherit;font-weight:700;
+    font-size:14px;padding:14px 10px;border-radius:12px;cursor:pointer;transition:.15s;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .chip:hover{border-color:#3d4654;background:#21262e;color:#fff;}
+  .chip.active{background:#2b3742;border-color:var(--accent);color:#fff;
+               box-shadow:0 0 0 1px var(--accent), 0 6px 18px rgba(124,195,106,.18);}
+  .setup-actions{display:flex;gap:10px;margin-top:6px;}
+  .setup-actions .btn-primary{flex:1;padding:14px;}
+  .setup-actions .btn-secondary{padding:14px 22px;}
+
+  /* ---------- Game screen ---------- */
+  #screen-game{flex-direction:column;}
+  header{
+    display:flex;align-items:center;justify-content:space-between;padding:10px 18px;
+    border-bottom:1px solid var(--line);background:rgba(20,24,30,.72);
+    backdrop-filter:blur(8px);flex-shrink:0;gap:12px;flex-wrap:wrap;
+  }
+  .head-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .icon-btn{
+    border:1px solid #2e3540;background:#1a1f27;color:#c3ccd8;font:inherit;font-weight:700;
+    font-size:13px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:.15s;
+  }
+  .icon-btn:hover{background:#21262e;color:#fff;}
+  .badge-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .badge{
+    font-size:12px;font-weight:800;letter-spacing:.3px;padding:6px 12px;border-radius:8px;
+    background:#1f2630;color:#c3ccd8;border:1px solid #2e3540;text-transform:capitalize;
+  }
+  .badge.accent{background:rgba(124,195,106,.14);color:var(--accent);border-color:rgba(124,195,106,.35);}
 
   main{flex:1;display:flex;min-height:0;}
   #board-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;min-width:0;min-height:0;}
   #board{border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.06);
          touch-action:none;cursor:pointer;display:block;}
 
-  aside{width:344px;flex-shrink:0;border-left:1px solid var(--line);background:var(--panel);
-        display:flex;flex-direction:column;padding:16px;gap:12px;overflow:hidden;}
+  aside{
+    width:344px;flex-shrink:0;border-left:1px solid var(--line);background:var(--panel);
+    display:flex;flex-direction:column;padding:16px;gap:12px;overflow:hidden;
+  }
   .turn-row{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14.5px;}
   .turn-dot{width:15px;height:15px;border-radius:50%;background:#fff;
-            box-shadow:0 0 0 1.5px #555,inset 0 -2px 3px rgba(0,0,0,.35);transition:.2s;}
+            box-shadow:0 0 0 1.5px #555,inset 0 -2px 3px rgba(0,0,0,.35);transition:.2s;flex-shrink:0;}
   .turn-dot.black{background:#181818;box-shadow:0 0 0 1.5px #555,inset 0 2px 3px rgba(255,255,255,.18);}
   .turn-dot.thinking{animation:pulse 1s infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -63,7 +122,7 @@
   .controls{display:flex;gap:9px;flex-shrink:0;}
   .controls button{flex:1;border:1px solid #2e3540;background:#1d222a;color:#d7dee7;font:inherit;
     font-weight:700;font-size:13px;padding:11px 6px;border-radius:10px;cursor:pointer;transition:.15s;}
-  .controls button:hover{background:#262d38;border-color:#3d4654;transform:translateY(-1px);}
+  .controls button:hover{background:#262d38;border-color:#3d4654;}
   .controls button.hidden{display:none;}
 
   /* ---------- Promotion ---------- */
@@ -74,20 +133,22 @@
              text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.7);}
   .promo-title{font-weight:800;margin-bottom:12px;font-size:14px;color:#c3ccd8;}
   .promo-options{display:flex;gap:8px;}
-  .promo-options button{width:64px;height:64px;border-radius:12px;border:1px solid #333b47;
-    background:#252b34;cursor:pointer;transition:.15s;padding:0;display:flex;align-items:center;justify-content:center;}
-  .promo-options button:hover{background:#7cc36a;border-color:#7cc36a;transform:translateY(-2px);}
-  .promo-options canvas{width:46px;height:46px;}
+  .promo-options button{
+    width:64px;height:64px;border-radius:12px;border:1px solid #333b47;background:#252b34;
+    color:#fff;cursor:pointer;transition:.15s;font-size:36px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .promo-options button:hover{background:var(--accent);color:#0c1014;border-color:var(--accent);transform:translateY(-2px);}
 
-  /* ---------- Recap modal ---------- */
+  /* ---------- Modal ---------- */
   .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-         background:rgba(6,8,11,.74);z-index:70;backdrop-filter:blur(6px);padding:18px;
-         animation:fade .25s ease;}
+         background:rgba(6,8,11,.74);z-index:70;backdrop-filter:blur(6px);padding:18px;animation:fade .25s;}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   .modal.hidden{display:none;}
   .modal-card{
-    width:min(520px,100%);max-height:88vh;overflow-y:auto;background:linear-gradient(180deg,#1c2129,#151920);
-    border:1px solid #2f3743;border-radius:20px;padding:26px;box-shadow:0 40px 90px rgba(0,0,0,.8);
+    width:min(520px,100%);max-height:88vh;overflow-y:auto;
+    background:linear-gradient(180deg,#1c2129,#151920);border:1px solid #2f3743;
+    border-radius:20px;padding:26px;box-shadow:0 40px 90px rgba(0,0,0,.8);
     animation:rise .32s cubic-bezier(.2,1.2,.4,1);
   }
   @keyframes rise{from{transform:translateY(18px) scale(.97);opacity:0}to{transform:none;opacity:1}}
@@ -112,58 +173,98 @@
   .stat-grid span{display:block;font-size:11px;letter-spacing:.9px;text-transform:uppercase;
                   color:var(--muted);font-weight:800;margin-bottom:5px;}
   .stat-grid b{font-size:14px;font-weight:700;color:#e8ecf1;}
-  .note{margin-top:12px;padding:11px 14px;background:#1a1f27;border-radius:11px;border-left:3px solid #3a4250;
-        font-size:13px;color:#c3ccd8;line-height:1.5;}
+  .note{margin-top:12px;padding:11px 14px;background:#1a1f27;border-radius:11px;
+        border-left:3px solid #3a4250;font-size:13px;color:#c3ccd8;line-height:1.5;}
   .note b{color:#fff;}
   .modal-foot{display:flex;gap:10px;margin-top:22px;}
   .modal-foot button{flex:1;border:1px solid #2e3540;background:#1d222a;color:#d7dee7;font:inherit;
     font-weight:700;font-size:13.5px;padding:13px;border-radius:11px;cursor:pointer;transition:.15s;}
   .modal-foot button:hover{background:#262d38;}
-  .modal-foot button.primary{background:#7cc36a;border-color:#7cc36a;color:#0c1014;}
+  .modal-foot button.primary{background:var(--accent);border-color:var(--accent);color:#0c1014;}
   .modal-foot button.primary:hover{background:#8ed47b;}
 
   @media (max-width:880px){
     main{flex-direction:column;}
     aside{width:auto;height:44%;border-left:none;border-top:1px solid var(--line);padding:12px;gap:9px;}
     #board-wrap{padding:10px;}
+    .hero-title{font-size:28px;}
     .modal-card{padding:20px;}
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand"><span class="logo">♟</span>Duo<span class="accent">Board</span></div>
-  <div class="hgroup">
-    <div class="segmented" id="mode-seg">
-      <button class="seg active" data-mode="chess">Chess</button>
-      <button class="seg" data-mode="go">Go</button>
+<!-- ============================================================ HOME -->
+<div id="screen-home" class="screen active">
+  <div class="hero">
+    <div class="hero-logo">♟</div>
+    <h1 class="hero-title">Duo<span class="accent">Board</span></h1>
+    <p class="hero-sub">A professional chess and Go trainer with three AI difficulty levels and a full post-game recap of every move you played.</p>
+  </div>
+  <button class="btn-primary" id="home-play">Play</button>
+</div>
+
+<!-- ============================================================ SETUP -->
+<div id="screen-setup" class="screen">
+  <div class="setup-card">
+    <h2 class="setup-title">New game</h2>
+
+    <div class="setup-group">
+      <div class="setup-label">Choose your game</div>
+      <div class="chip-row">
+        <button class="chip active" data-mode="chess">♟ Chess</button>
+        <button class="chip" data-mode="go">⚫ Go (9×9)</button>
+      </div>
     </div>
-    <div class="segmented" id="diff-seg">
-      <button class="seg" data-diff="1">Easy</button>
-      <button class="seg active" data-diff="2">Medium</button>
-      <button class="seg" data-diff="3">Hard</button>
+
+    <div class="setup-group">
+      <div class="setup-label">Opponent difficulty</div>
+      <div class="chip-row three">
+        <button class="chip" data-diff="1">Easy</button>
+        <button class="chip active" data-diff="2">Medium</button>
+        <button class="chip" data-diff="3">Hard</button>
+      </div>
+    </div>
+
+    <div class="setup-actions">
+      <button class="btn-secondary" id="setup-back">Back</button>
+      <button class="btn-primary" id="setup-start">Start game</button>
     </div>
   </div>
-</header>
+</div>
 
-<main>
-  <div id="board-wrap"><canvas id="board"></canvas></div>
-  <aside>
-    <div class="turn-row">
-      <div class="turn-dot" id="turn-dot"></div>
-      <div id="turn-text">White to move</div>
+<!-- ============================================================ GAME -->
+<div id="screen-game" class="screen">
+  <header>
+    <div class="head-left">
+      <button class="icon-btn" id="game-menu">← Menu</button>
+      <div class="badge-group">
+        <span class="badge accent" id="badge-mode">Chess</span>
+        <span class="badge" id="badge-diff">Medium</span>
+      </div>
     </div>
-    <div class="moves-header">Move history</div>
-    <div class="moves" id="moves"><div class="empty-note">No moves yet</div></div>
-    <div class="controls">
-      <button id="undo">↶ Undo</button>
-      <button id="pass" class="hidden">Pass</button>
-      <button id="reset">⟳ New game</button>
-    </div>
-  </aside>
-</main>
+    <button class="icon-btn" id="game-new">New game</button>
+  </header>
 
+  <main>
+    <div id="board-wrap"><canvas id="board"></canvas></div>
+    <aside>
+      <div class="turn-row">
+        <div class="turn-dot" id="turn-dot"></div>
+        <div id="turn-text">White to move</div>
+      </div>
+      <div class="moves-header">Move history</div>
+      <div class="moves" id="moves"><div class="empty-note">No moves yet</div></div>
+      <div class="controls">
+        <button id="undo">↶ Undo</button>
+        <button id="pass" class="hidden">Pass</button>
+        <button id="reset">⟳ Restart</button>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- ============================================================ OVERLAYS -->
 <div class="promo hidden" id="promo">
   <div class="promo-box">
     <div class="promo-title">Promote your pawn to…</div>
@@ -182,8 +283,8 @@
     </div>
     <div id="modal-body"></div>
     <div class="modal-foot">
-      <button id="modal-review">Review board</button>
-      <button id="modal-new" class="primary">New game</button>
+      <button id="modal-menu">Change settings</button>
+      <button id="modal-again" class="primary">Play again</button>
     </div>
   </div>
 </div>
@@ -191,32 +292,43 @@
 <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.2/chess.js"></script>
 <script>
 "use strict";
-const $ = id => document.getElementById(id);
 
 /* ==========================================================================
-   0. CANVAS
+   0.  UTILITIES
+   ========================================================================== */
+const $ = id => document.getElementById(id);
+const inCheck     = g => g.in_check     ? g.in_check()     : g.inCheck();
+const inCheckmate = g => g.in_checkmate ? g.in_checkmate() : g.isCheckmate();
+const inDraw      = g => g.in_draw      ? g.in_draw()      : g.isDraw();
+
+/* ==========================================================================
+   1.  CANVAS
    ========================================================================== */
 const canvas = $('board');
 const ctx = canvas.getContext('2d');
 let S = 0;
 
 function resize(){
-  const r = $('board-wrap').getBoundingClientRect();
+  const wrap = $('board-wrap');
+  if (!wrap) return;
+  const r = wrap.getBoundingClientRect();
+  if (r.width < 10 || r.height < 10) return;   // hidden
   const size = Math.max(180, Math.floor(Math.min(r.width, r.height)));
   const dpr = window.devicePixelRatio || 1;
   S = size;
   canvas.style.width = size + 'px';
   canvas.style.height = size + 'px';
-  canvas.width = Math.round(size * dpr);
+  canvas.width  = Math.round(size * dpr);
   canvas.height = Math.round(size * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   render();
 }
 
 /* ==========================================================================
-   1. GLOBAL STATE
+   2.  GLOBAL STATE
    ========================================================================== */
 const G = {
+  screen: 'home',
   mode: 'chess',
   difficulty: 2,
   busy: false,
@@ -250,32 +362,26 @@ const KIND_COLOR = { best:'#7cc36a', good:'#7cc36a', inaccuracy:'#e6b455',
 const KIND_LABEL = { best:'Best', good:'Good', inaccuracy:'Inaccuracy',
                      mistake:'Mistake', blunder:'Blunder' };
 
-/* chess.js version-safe helpers */
-const inCheck     = g => g.in_check     ? g.in_check()     : g.inCheck();
-const inCheckmate = g => g.in_checkmate ? g.in_checkmate() : g.isCheckmate();
-const inDraw      = g => g.in_draw      ? g.in_draw()      : g.isDraw();
+const G_HUMAN_CHESS = 'w';
+const G_HUMAN_GO = 1;   // human plays Black
 
 /* ==========================================================================
-   2. VECTOR PIECE ART (45 × 45 design space)
+   3.  PIECE VECTOR ART
    ========================================================================== */
 const PIECE_SVG = {
   p: ["M22.5,6.4 A5.6,5.6 0 1,0 22.51,6.4 Z",
       "M18.4,17.2 C18.4,21.6 20.1,24.8 19.4,28.8 L25.6,28.8 C24.9,24.8 26.6,21.6 26.6,17.2 Z",
       "M14.6,37 C14.2,33.4 15.4,30.6 17.6,29.2 L27.4,29.2 C29.6,30.6 30.8,33.4 30.4,37 Z"],
-
   r: ["M12,9.5 L12,16 L16.6,16 L16.6,12.6 L20.4,12.6 L20.4,16 L24.6,16 L24.6,12.6 L28.4,12.6 L28.4,16 L33,16 L33,9.5 Z",
       "M15.2,16 L29.8,16 L28.6,28.5 L16.4,28.5 Z",
       "M14.8,28.5 L30.2,28.5 L30.7,31.8 L14.3,31.8 Z",
       "M13,37 C12.8,33.6 14,31.8 16.2,31.8 L28.8,31.8 C31,31.8 32.2,33.6 32,37 Z"],
-
   n: ["M19,7 L21.6,9.4 C25.4,8.4 29.2,11.2 30,15.4 C30.8,19.6 30.6,24 30.6,31.2 L15.6,31.2 L17,23.4 C15.8,22.4 14.4,20.8 14.4,18.6 C14.4,16.8 15.4,15.4 16.8,14.6 C16.2,11.8 17.2,8.8 19,7 Z",
       "M12.8,37 C12.6,33.4 13.8,31.2 16,31.2 L29.2,31.2 C31.4,31.2 32.6,33.4 32.4,37 Z"],
-
   b: ["M22.5,6.2 A2.4,2.4 0 1,0 22.51,6.2 Z",
       "M22.5,9.6 C17.8,12.4 15.2,17.2 16.4,21.2 C17.4,24.4 19.8,26.2 22.5,26.2 C25.2,26.2 27.6,24.4 28.6,21.2 C29.8,17.2 27.2,12.4 22.5,9.6 Z",
       "M17,26.2 L28,26.2 L29,29.6 L16,29.6 Z",
       "M13,37 C12.8,33.6 14,30.4 16.4,29.6 L28.6,29.6 C31,30.4 32.2,33.6 32,37 Z"],
-
   q: ["M9.5,18.6 L12.8,10.4 L17.2,16.4 L22.5,8.8 L27.8,16.4 L32.2,10.4 L35.5,18.6 Z",
       "M12.8,9.2 A2,2 0 1,0 12.81,9.2 Z",
       "M22.5,7.6 A2.2,2.2 0 1,0 22.51,7.6 Z",
@@ -285,74 +391,78 @@ const PIECE_SVG = {
       "M11.6,18.6 L33.4,18.6 L32.2,22.4 L12.8,22.4 Z",
       "M12.8,22.4 L32.2,22.4 C31.4,26.4 31,29 31,31.4 L14,31.4 C14,29 13.6,26.4 12.8,22.4 Z",
       "M12,37 C11.8,33.8 13.2,31.4 15.6,31.4 L29.4,31.4 C31.8,31.4 33.2,33.8 33,37 Z"],
-
   k: ["M20.6,4.6 L24.4,4.6 L24.4,8.2 L28,8.2 L28,12 L24.4,12 L24.4,15.6 L20.6,15.6 L20.6,12 L17,12 L17,8.2 L20.6,8.2 Z",
       "M11.4,19.6 C11.4,16 15.6,13.8 22.5,13.8 C29.4,13.8 33.6,16 33.6,19.6 C33.6,23 31.4,26.4 31.4,29.6 L13.6,29.6 C13.6,26.4 11.4,23 11.4,19.6 Z",
       "M13.6,29.6 L31.4,29.6 L31,31.6 L14,31.6 Z",
       "M12,37 C11.8,33.6 13.4,31.6 15.8,31.6 L29.2,31.6 C31.6,31.6 33.2,33.6 33,37 Z"]
 };
 
-const PIECE_PATHS = {};   // combined Path2D per type
-const PIECE_EYES  = { n: { cx:18.2, cy:15.2, r:0.95 } };
-
+const PIECE_PATHS = {};
 for (const type in PIECE_SVG){
-  const combined = new Path2D();
-  for (const d of PIECE_SVG[type]) combined.addPath(new Path2D(d));
-  PIECE_PATHS[type] = combined;
+  const p = new Path2D();
+  for (const d of PIECE_SVG[type]) p.addPath(new Path2D(d));
+  PIECE_PATHS[type] = p;
+}
+const PIECE_EYES = { n: { cx:18.2, cy:15.2, r:0.95 } };
+
+function drawPieceOn(c, piece, cx, cy, size, alpha){
+  const isWhite = piece.color === 'w';
+  c.save();
+  c.globalAlpha = alpha === undefined ? 1 : alpha;
+  c.translate(cx - size/2, cy - size/2);
+  c.scale(size/45, size/45);
+
+  const grad = c.createLinearGradient(0, 4, 0, 40);
+  if (isWhite){
+    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.55, '#f2efe8'); grad.addColorStop(1, '#c9c2b4');
+  } else {
+    grad.addColorStop(0, '#5f5f5f'); grad.addColorStop(0.5, '#2b2b2b'); grad.addColorStop(1, '#0b0b0b');
+  }
+  const path = PIECE_PATHS[piece.type];
+
+  c.save();
+  c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 3.2; c.shadowOffsetY = 1.6;
+  c.fillStyle = grad; c.fill(path);
+  c.restore();
+
+  c.fillStyle = grad; c.fill(path);
+  c.strokeStyle = isWhite ? '#38352f' : '#000';
+  c.lineWidth = 1.15; c.lineJoin = 'round';
+  c.stroke(path);
+
+  const eye = PIECE_EYES[piece.type];
+  if (eye){
+    c.beginPath(); c.arc(eye.cx, eye.cy, eye.r, 0, Math.PI * 2);
+    c.fillStyle = isWhite ? '#38352f' : '#000'; c.fill();
+  }
+  c.restore();
+}
+function drawPiece(piece, cx, cy, size, alpha){
+  drawPieceOn(ctx, piece, cx, cy, size, alpha);
 }
 
 /* ==========================================================================
-   3. CHESS ENGINE — evaluation tables
+   4.  CHESS ENGINE
    ========================================================================== */
 const PST = {
-  p:[ 0,0,0,0,0,0,0,0,
-     50,50,50,50,50,50,50,50,
-     10,10,20,30,30,20,10,10,
-      5, 5,10,25,25,10, 5, 5,
-      0, 0, 0,20,20, 0, 0, 0,
-      5,-5,-10,0, 0,-10,-5,5,
-      5,10,10,-20,-20,10,10,5,
-      0,0,0,0,0,0,0,0],
-  n:[-50,-40,-30,-30,-30,-30,-40,-50,
-     -40,-20,  0,  0,  0,  0,-20,-40,
-     -30,  0, 10, 15, 15, 10,  0,-30,
-     -30,  5, 15, 20, 20, 15,  5,-30,
-     -30,  0, 15, 20, 20, 15,  0,-30,
-     -30,  5, 10, 15, 15, 10,  5,-30,
-     -40,-20,  0,  5,  5,  0,-20,-40,
-     -50,-40,-30,-30,-30,-30,-40,-50],
-  b:[-20,-10,-10,-10,-10,-10,-10,-20,
-     -10,  0,  0,  0,  0,  0,  0,-10,
-     -10,  0,  5, 10, 10,  5,  0,-10,
-     -10,  5,  5, 10, 10,  5,  5,-10,
-     -10,  0, 10, 10, 10, 10,  0,-10,
-     -10, 10, 10, 10, 10, 10, 10,-10,
-     -10,  5,  0,  0,  0,  0,  5,-10,
-     -20,-10,-10,-10,-10,-10,-10,-20],
-  r:[  0,  0,  0,  0,  0,  0,  0,  0,
-       5, 10, 10, 10, 10, 10, 10,  5,
-      -5,  0,  0,  0,  0,  0,  0, -5,
-      -5,  0,  0,  0,  0,  0,  0, -5,
-      -5,  0,  0,  0,  0,  0,  0, -5,
-      -5,  0,  0,  0,  0,  0,  0, -5,
-      -5,  0,  0,  0,  0,  0,  0, -5,
-       0,  0,  0,  5,  5,  0,  0,  0],
-  q:[-20,-10,-10, -5, -5,-10,-10,-20,
-     -10,  0,  0,  0,  0,  0,  0,-10,
-     -10,  0,  5,  5,  5,  5,  0,-10,
-      -5,  0,  5,  5,  5,  5,  0, -5,
-       0,  0,  5,  5,  5,  5,  0, -5,
-     -10,  5,  5,  5,  5,  5,  0,-10,
-     -10,  0,  5,  0,  0,  0,  0,-10,
-     -20,-10,-10, -5, -5,-10,-10,-20],
-  k:[-30,-40,-40,-50,-50,-40,-40,-30,
-     -30,-40,-40,-50,-50,-40,-40,-30,
-     -30,-40,-40,-50,-50,-40,-40,-30,
-     -30,-40,-40,-50,-50,-40,-40,-30,
-     -20,-30,-30,-40,-40,-30,-30,-20,
-     -10,-20,-20,-20,-20,-20,-20,-10,
-      20, 20,  0,  0,  0,  0, 20, 20,
-      20, 30, 10,  0,  0, 10, 30, 20]
+  p:[ 0,0,0,0,0,0,0,0, 50,50,50,50,50,50,50,50, 10,10,20,30,30,20,10,10,
+      5,5,10,25,25,10,5,5, 0,0,0,20,20,0,0,0, 5,-5,-10,0,0,-10,-5,5,
+      5,10,10,-20,-20,10,10,5, 0,0,0,0,0,0,0,0],
+  n:[-50,-40,-30,-30,-30,-30,-40,-50, -40,-20,0,0,0,0,-20,-40, -30,0,10,15,15,10,0,-30,
+     -30,5,15,20,20,15,5,-30, -30,0,15,20,20,15,0,-30, -30,5,10,15,15,10,5,-30,
+     -40,-20,0,5,5,0,-20,-40, -50,-40,-30,-30,-30,-30,-40,-50],
+  b:[-20,-10,-10,-10,-10,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,5,10,10,5,0,-10,
+     -10,5,5,10,10,5,5,-10, -10,0,10,10,10,10,0,-10, -10,10,10,10,10,10,10,-10,
+     -10,5,0,0,0,0,5,-10, -20,-10,-10,-10,-10,-10,-10,-20],
+  r:[ 0,0,0,0,0,0,0,0, 5,10,10,10,10,10,10,5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5,
+     -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, 0,0,0,5,5,0,0,0],
+  q:[-20,-10,-10,-5,-5,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,5,5,5,5,0,-10,
+     -5,0,5,5,5,5,0,-5, 0,0,5,5,5,5,0,-5, -10,5,5,5,5,5,0,-10,
+     -10,0,5,0,0,0,0,-10, -20,-10,-10,-5,-5,-10,-10,-20],
+  k:[-30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30,
+     -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30,
+     -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10,
+      20,20,0,0,0,0,20,20, 20,30,10,0,0,10,30,20]
 };
 
 function evaluateWhite(game){
@@ -364,7 +474,7 @@ function evaluateWhite(game){
       const pc = row[f];
       if (!pc) continue;
       const idx = pc.color === 'w' ? r * 8 + f : (7 - r) * 8 + f;
-      const v = PIECE_VAL[pc.type] + PST[pc.type][idx];
+      const v = PIECE_VAL[pc.type] + (PST[pc.type] ? PST[pc.type][idx] : 0);
       score += pc.color === 'w' ? v : -v;
     }
   }
@@ -374,22 +484,22 @@ function evaluateWhite(game){
 const TIMEOUT = { timeout: true };
 let nodes = 0;
 
-function genMoves(game){
-  return game.ugly_moves ? game.ugly_moves() : game.moves({ verbose: true });
-}
-function doMove(game, m){
-  return game.ugly_move ? game.ugly_move(m) : game.move(m);
-}
+function verboseMoves(game){ return game.moves({ verbose: true }); }
+
 function moveScore(m){
   let s = 0;
-  if (m.captured) s += 10 * PIECE_VAL[m.captured] - PIECE_VAL[m.piece];
-  if (m.promotion) s += PIECE_VAL[m.promotion];
+  if (m.captured) s += 10 * (PIECE_VAL[m.captured] || 0) - (PIECE_VAL[m.piece] || 0);
+  if (m.promotion) s += PIECE_VAL[m.promotion] || 0;
   return s;
 }
 function orderedMoves(game){
-  const ms = genMoves(game);
-  ms.sort((a, b) => moveScore(b) - moveScore(a));
+  const ms = verboseMoves(game);
+  ms.sort((a,b) => moveScore(b) - moveScore(a));
   return ms;
+}
+
+function playVerbose(game, m){
+  return game.move({ from: m.from, to: m.to, promotion: m.promotion || 'q' });
 }
 
 function quiesce(game, alpha, beta, deadline, qd){
@@ -401,14 +511,14 @@ function quiesce(game, alpha, beta, deadline, qd){
   if (stand > alpha) alpha = stand;
 
   const inChk = inCheck(game);
-  let moves = genMoves(game);
+  let moves = verboseMoves(game);
   if (!inChk){
     moves = moves.filter(m => m.captured || m.promotion);
     if (!moves.length) return stand;
   }
-  moves.sort((a, b) => moveScore(b) - moveScore(a));
+  moves.sort((a,b) => moveScore(b) - moveScore(a));
   for (const m of moves){
-    doMove(game, m);
+    playVerbose(game, m);
     const s = -quiesce(game, -beta, -alpha, deadline, qd - 1);
     game.undo();
     if (s >= beta) return beta;
@@ -425,7 +535,7 @@ function negamax(game, depth, alpha, beta, deadline){
   if (!moves.length) return inCheck(game) ? -99000 - depth * 100 : 0;
 
   for (const m of moves){
-    doMove(game, m);
+    playVerbose(game, m);
     const s = -negamax(game, depth - 1, -beta, -alpha, deadline);
     game.undo();
     if (s >= beta) return beta;
@@ -437,25 +547,31 @@ function negamax(game, depth, alpha, beta, deadline){
 function whiteEval(game, depth, budget){
   const deadline = Date.now() + budget;
   nodes = 0;
+  /* search on a probe so that a timeout never corrupts the caller's game */
+  const probe = new Chess(game.fen());
   try {
-    const s = negamax(game, depth, -Infinity, Infinity, deadline);
-    return game.turn() === 'w' ? s : -s;
+    const s = negamax(probe, depth, -Infinity, Infinity, deadline);
+    return probe.turn() === 'w' ? s : -s;
   } catch (e){
     if (e !== TIMEOUT) throw e;
-    return evaluateWhite(game);
+    return evaluateWhite(probe);
   }
 }
 
 function chooseChessMove(game, level){
-  const moves = genMoves(game);
+  const moves = verboseMoves(game);
   if (!moves.length) return null;
+
   if (level === 1 && Math.random() < 0.32){
     return moves[(Math.random() * moves.length) | 0];
   }
 
-  const budget   = level === 1 ? 120 : level === 2 ? 420 : 1300;
+  const budget   = level === 1 ? 150 : level === 2 ? 500 : 1500;
   const maxDepth = level === 1 ? 1   : level === 2 ? 2   : 4;
   const deadline = Date.now() + budget;
+
+  /* search on a throwaway clone — the live game is never touched */
+  const probe = new Chess(game.fen());
 
   let best = moves[0];
   let bestScore = -Infinity;
@@ -464,12 +580,12 @@ function chooseChessMove(game, level){
     let alpha = -Infinity;
     let localBest = null;
     let localScore = -Infinity;
-    const ordered = moves.slice().sort((a, b) => moveScore(b) - moveScore(a));
+    const ordered = moves.slice().sort((a,b) => moveScore(b) - moveScore(a));
     try {
       for (const m of ordered){
-        doMove(game, m);
-        const s = -negamax(game, d - 1, -Infinity, -alpha, deadline);
-        game.undo();
+        playVerbose(probe, m);
+        const s = -negamax(probe, d - 1, -Infinity, -alpha, deadline);
+        probe.undo();
         if (s > localScore){ localScore = s; localBest = m; }
         if (s > alpha) alpha = s;
       }
@@ -477,184 +593,14 @@ function chooseChessMove(game, level){
       bestScore = localScore;
     } catch (e){
       if (e !== TIMEOUT) throw e;
-      break;
+      break;   // probe may be corrupted — but we discard it; use last depth's best
     }
   }
   return best;
 }
 
 /* ==========================================================================
-   4. CHESS — rendering
-   ========================================================================== */
-function squareCenter(sq){
-  const cell = S / 8;
-  const f = FILES.indexOf(sq[0]);
-  const r = 8 - parseInt(sq[1], 10);
-  return { x: (f + 0.5) * cell, y: (r + 0.5) * cell, cell };
-}
-function squareAtPoint(x, y){
-  const cell = S / 8;
-  const f = Math.floor(x / cell);
-  const r = Math.floor(y / cell);
-  if (f < 0 || f > 7 || r < 0 || r > 7) return null;
-  return FILES[f] + (8 - r);
-}
-
-function drawPiece(piece, cx, cy, size, alpha){
-  const type = piece.type;
-  const isWhite = piece.color === 'w';
-  ctx.save();
-  ctx.globalAlpha = alpha === undefined ? 1 : alpha;
-  ctx.translate(cx - size / 2, cy - size / 2);
-  ctx.scale(size / 45, size / 45);
-
-  const grad = ctx.createLinearGradient(0, 4, 0, 40);
-  if (isWhite){
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.55, '#f2efe8');
-    grad.addColorStop(1, '#c9c2b4');
-  } else {
-    grad.addColorStop(0, '#5f5f5f');
-    grad.addColorStop(0.5, '#2b2b2b');
-    grad.addColorStop(1, '#0b0b0b');
-  }
-
-  const path = PIECE_PATHS[type];
-
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,.45)';
-  ctx.shadowBlur = 3.2;
-  ctx.shadowOffsetY = 1.6;
-  ctx.fillStyle = grad;
-  ctx.fill(path);
-  ctx.restore();
-
-  ctx.fillStyle = grad;
-  ctx.fill(path);
-
-  ctx.strokeStyle = isWhite ? '#38352f' : '#000000';
-  ctx.lineWidth = 1.15;
-  ctx.lineJoin = 'round';
-  ctx.stroke(path);
-
-  const eye = PIECE_EYES[type];
-  if (eye){
-    ctx.beginPath();
-    ctx.arc(eye.cx, eye.cy, eye.r, 0, Math.PI * 2);
-    ctx.fillStyle = isWhite ? '#38352f' : '#000';
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-function renderChess(){
-  const cell = S / 8;
-
-  /* board */
-  for (let r = 0; r < 8; r++){
-    for (let f = 0; f < 8; f++){
-      ctx.fillStyle = (r + f) % 2 === 0 ? '#efdec3' : '#b58863';
-      ctx.fillRect(f * cell, r * cell, cell + 0.5, cell + 0.5);
-    }
-  }
-
-  /* last move */
-  if (state.lastMove){
-    ctx.fillStyle = 'rgba(255,213,79,.45)';
-    for (const sq of [state.lastMove.from, state.lastMove.to]){
-      const { x, y } = squareCenter(sq);
-      ctx.fillRect(x - cell / 2, y - cell / 2, cell, cell);
-    }
-  }
-
-  /* selected */
-  if (state.selected){
-    const { x, y } = squareCenter(state.selected);
-    ctx.fillStyle = 'rgba(120,200,120,.45)';
-    ctx.fillRect(x - cell / 2, y - cell / 2, cell, cell);
-  }
-
-  /* check glow */
-  const game = state.chess;
-  if (game && inCheck(game)){
-    const turn = game.turn();
-    const board = game.board();
-    for (let r = 0; r < 8; r++){
-      for (let f = 0; f < 8; f++){
-        const pc = board[r][f];
-        if (pc && pc.type === 'k' && pc.color === turn){
-          const cx = (f + 0.5) * cell, cy = (r + 0.5) * cell;
-          const g = ctx.createRadialGradient(cx, cy, cell * 0.05, cx, cy, cell * 0.62);
-          g.addColorStop(0, 'rgba(230,60,60,.85)');
-          g.addColorStop(1, 'rgba(230,60,60,0)');
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(cx, cy, cell * 0.62, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-    }
-  }
-
-  /* legal move dots */
-  for (const t of state.targets){
-    const { x, y } = squareCenter(t.to);
-    const occupied = t.captured;
-    if (occupied){
-      ctx.beginPath();
-      ctx.arc(x, y, cell * 0.40, 0, Math.PI * 2);
-      ctx.lineWidth = cell * 0.075;
-      ctx.strokeStyle = 'rgba(30,30,30,.32)';
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.arc(x, y, cell * 0.145, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(30,30,30,.30)';
-      ctx.fill();
-    }
-  }
-
-  /* hover ring while dragging */
-  if (state.drag && state.drag.over){
-    const { x, y } = squareCenter(state.drag.over);
-    ctx.strokeStyle = 'rgba(255,255,255,.75)';
-    ctx.lineWidth = cell * 0.06;
-    ctx.strokeRect(x - cell / 2 + 2, y - cell / 2 + 2, cell - 4, cell - 4);
-  }
-
-  /* pieces */
-  const board = game.board();
-  for (let r = 0; r < 8; r++){
-    for (let f = 0; f < 8; f++){
-      const pc = board[r][f];
-      if (!pc) continue;
-      const sq = FILES[f] + (8 - r);
-      if (state.drag && state.drag.moved && state.drag.from === sq) continue;
-      drawPiece(pc, (f + 0.5) * cell, (r + 0.5) * cell, cell * 0.94);
-    }
-  }
-
-  /* dragged piece follows pointer */
-  if (state.drag && state.drag.moved && state.drag.piece){
-    drawPiece(state.drag.piece, state.drag.x, state.drag.y, cell * 1.02, 0.92);
-  }
-
-  /* coordinates */
-  ctx.font = `600 ${Math.max(9, cell * 0.19)}px ui-sans-serif,system-ui,sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  for (let f = 0; f < 8; f++){
-    ctx.fillStyle = f % 2 === 0 ? '#b58863' : '#efdec3';
-    ctx.fillText(FILES[f], (f + 0.5) * cell, S - cell * 0.19);
-  }
-  for (let r = 0; r < 8; r++){
-    ctx.fillStyle = r % 2 === 0 ? '#efdec3' : '#b58863';
-    ctx.fillText(String(8 - r), cell * 0.19, (r + 0.5) * cell);
-  }
-}
-
-/* ==========================================================================
-   5. GO ENGINE (9 × 9)
+   5.  GO ENGINE (9×9)
    ========================================================================== */
 const GO_N = 9;
 const GO_SIZE = GO_N * GO_N;
@@ -688,7 +634,6 @@ function goGroup(board, start){
   return { stones, libs: [...libs] };
 }
 
-/* returns {board, captured, ko} or null if illegal */
 function goPlay(board, idx, color, koPoint){
   if (board[idx] !== 0) return null;
   if (idx === koPoint) return null;
@@ -749,19 +694,16 @@ function goScore(board){
 function goEvaluate(board, color, capB, capW){
   const seen = new Uint8Array(GO_SIZE);
   let score = 0;
-
   for (let i = 0; i < GO_SIZE; i++){
     if (board[i] === 0 || seen[i]) continue;
     const g = goGroup(board, i);
     for (const s of g.stones) seen[s] = 1;
     const sign = board[i] === color ? 1 : -1;
-
     score += sign * g.stones.length;
     if (g.libs.length === 1) score -= sign * 14;
     else if (g.libs.length === 2) score -= sign * 3.5;
     score += sign * Math.min(g.libs.length, 6) * 0.55;
   }
-
   score += (color === 1 ? capB - capW : capW - capB) * 1.15;
   return score;
 }
@@ -775,7 +717,6 @@ function goChooseMove(board, color, koPoint, capB, capW, level){
     const nbCapW = color === 2 ? capW + res.captured : capW;
     let s = goEvaluate(res.board, color, nbCapB, nbCapW);
 
-    /* small preference for centre & against first-line moves early */
     const x = i % GO_N, y = (i / GO_N) | 0;
     const edge = Math.min(x, y, GO_N - 1 - x, GO_N - 1 - y);
     s += edge === 0 ? -2.2 : edge === 1 ? -0.6 : 0.4;
@@ -784,7 +725,6 @@ function goChooseMove(board, color, koPoint, capB, capW, level){
   }
 
   const passScore = goEvaluate(board, color, capB, capW) - 1.5;
-
   if (!moves.length) return { pass: true };
 
   moves.sort((a, b) => b.score - a.score);
@@ -794,12 +734,10 @@ function goChooseMove(board, color, koPoint, capB, capW, level){
     const pick = pool[(Math.random() * pool.length) | 0];
     return pick.score > passScore ? { idx: pick.idx } : { pass: true };
   }
-
   if (level === 2){
     return moves[0].score > passScore ? { idx: moves[0].idx } : { pass: true };
   }
 
-  /* level 3: one-ply look-ahead on the best candidates */
   const top = moves.slice(0, 7);
   let best = null, bestVal = -Infinity;
   for (const cand of top){
@@ -822,7 +760,117 @@ function goChooseMove(board, color, koPoint, capB, capW, level){
 }
 
 /* ==========================================================================
-   6. GO — rendering
+   6.  CHESS RENDERING
+   ========================================================================== */
+function squareCenter(sq){
+  const cell = S / 8;
+  const f = FILES.indexOf(sq[0]);
+  const r = 8 - parseInt(sq[1], 10);
+  return { x: (f + 0.5) * cell, y: (r + 0.5) * cell, cell };
+}
+function squareAtPoint(x, y){
+  const cell = S / 8;
+  const f = Math.floor(x / cell);
+  const r = Math.floor(y / cell);
+  if (f < 0 || f > 7 || r < 0 || r > 7) return null;
+  return FILES[f] + (8 - r);
+}
+
+function renderChess(){
+  const cell = S / 8;
+
+  for (let r = 0; r < 8; r++){
+    for (let f = 0; f < 8; f++){
+      ctx.fillStyle = (r + f) % 2 === 0 ? '#efdec3' : '#b58863';
+      ctx.fillRect(f * cell, r * cell, cell + 0.5, cell + 0.5);
+    }
+  }
+
+  if (state.lastMove){
+    ctx.fillStyle = 'rgba(255,213,79,.45)';
+    for (const sq of [state.lastMove.from, state.lastMove.to]){
+      const { x, y } = squareCenter(sq);
+      ctx.fillRect(x - cell / 2, y - cell / 2, cell, cell);
+    }
+  }
+
+  if (state.selected){
+    const { x, y } = squareCenter(state.selected);
+    ctx.fillStyle = 'rgba(120,200,120,.45)';
+    ctx.fillRect(x - cell / 2, y - cell / 2, cell, cell);
+  }
+
+  const game = state.chess;
+  if (game && inCheck(game)){
+    const turn = game.turn();
+    const board = game.board();
+    for (let r = 0; r < 8; r++){
+      for (let f = 0; f < 8; f++){
+        const pc = board[r][f];
+        if (pc && pc.type === 'k' && pc.color === turn){
+          const cx = (f + 0.5) * cell, cy = (r + 0.5) * cell;
+          const g = ctx.createRadialGradient(cx, cy, cell * 0.05, cx, cy, cell * 0.62);
+          g.addColorStop(0, 'rgba(230,60,60,.85)');
+          g.addColorStop(1, 'rgba(230,60,60,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(cx, cy, cell * 0.62, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+  }
+
+  for (const t of state.targets){
+    const { x, y } = squareCenter(t.to);
+    if (t.captured){
+      ctx.beginPath();
+      ctx.arc(x, y, cell * 0.40, 0, Math.PI * 2);
+      ctx.lineWidth = cell * 0.075;
+      ctx.strokeStyle = 'rgba(30,30,30,.32)';
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(x, y, cell * 0.145, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(30,30,30,.30)';
+      ctx.fill();
+    }
+  }
+
+  if (state.drag && state.drag.over){
+    const { x, y } = squareCenter(state.drag.over);
+    ctx.strokeStyle = 'rgba(255,255,255,.75)';
+    ctx.lineWidth = cell * 0.06;
+    ctx.strokeRect(x - cell / 2 + 2, y - cell / 2 + 2, cell - 4, cell - 4);
+  }
+
+  const board = game.board();
+  for (let r = 0; r < 8; r++){
+    for (let f = 0; f < 8; f++){
+      const pc = board[r][f];
+      if (!pc) continue;
+      const sq = FILES[f] + (8 - r);
+      if (state.drag && state.drag.moved && state.drag.from === sq) continue;
+      drawPiece(pc, (f + 0.5) * cell, (r + 0.5) * cell, cell * 0.94);
+    }
+  }
+
+  if (state.drag && state.drag.moved && state.drag.piece){
+    drawPiece(state.drag.piece, state.drag.x, state.drag.y, cell * 1.02, 0.92);
+  }
+
+  ctx.font = `600 ${Math.max(9, cell * 0.19)}px ui-sans-serif,system-ui,sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let f = 0; f < 8; f++){
+    ctx.fillStyle = f % 2 === 0 ? '#b58863' : '#efdec3';
+    ctx.fillText(FILES[f], (f + 0.5) * cell, S - cell * 0.19);
+  }
+  for (let r = 0; r < 8; r++){
+    ctx.fillStyle = r % 2 === 0 ? '#efdec3' : '#b58863';
+    ctx.fillText(String(8 - r), cell * 0.19, (r + 0.5) * cell);
+  }
+}
+
+/* ==========================================================================
+   7.  GO RENDERING
    ========================================================================== */
 const STAR_POINTS = [[2,2],[6,2],[4,4],[2,6],[6,6]];
 
@@ -831,7 +879,6 @@ function goGeom(){
   const cell = (S - 2 * m) / (GO_N - 1);
   return { m, cell };
 }
-
 function goPointAt(x, y){
   const { m, cell } = goGeom();
   const gx = Math.round((x - m) / cell);
@@ -845,26 +892,18 @@ function goPointAt(x, y){
 function drawStone(cx, cy, r, color, alpha){
   ctx.save();
   ctx.globalAlpha = alpha === undefined ? 1 : alpha;
-
   ctx.beginPath();
   ctx.arc(cx + r * 0.09, cy + r * 0.16, r, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,.28)';
-  ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fill();
 
   const g = ctx.createRadialGradient(cx - r * 0.34, cy - r * 0.38, r * 0.12, cx, cy, r * 1.12);
   if (color === 1){
-    g.addColorStop(0, '#6a6a6a');
-    g.addColorStop(0.45, '#2a2a2a');
-    g.addColorStop(1, '#050505');
+    g.addColorStop(0, '#6a6a6a'); g.addColorStop(0.45, '#2a2a2a'); g.addColorStop(1, '#050505');
   } else {
-    g.addColorStop(0, '#ffffff');
-    g.addColorStop(0.55, '#f0efe9');
-    g.addColorStop(1, '#bfbcb2');
+    g.addColorStop(0, '#ffffff'); g.addColorStop(0.55, '#f0efe9'); g.addColorStop(1, '#bfbcb2');
   }
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = g;
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = g; ctx.fill();
   ctx.lineWidth = Math.max(0.6, r * 0.045);
   ctx.strokeStyle = color === 1 ? 'rgba(0,0,0,.7)' : 'rgba(120,116,105,.55)';
   ctx.stroke();
@@ -875,16 +914,11 @@ function renderGo(){
   const board = state.go;
   const { m, cell } = goGeom();
 
-  /* wooden surface */
   const wood = ctx.createLinearGradient(0, 0, S, S);
-  wood.addColorStop(0, '#e9c184');
-  wood.addColorStop(0.5, '#e0b271');
-  wood.addColorStop(1, '#cfa05d');
-  ctx.fillStyle = wood;
-  ctx.fillRect(0, 0, S, S);
+  wood.addColorStop(0, '#e9c184'); wood.addColorStop(0.5, '#e0b271'); wood.addColorStop(1, '#cfa05d');
+  ctx.fillStyle = wood; ctx.fillRect(0, 0, S, S);
 
-  ctx.strokeStyle = 'rgba(150,105,50,.14)';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(150,105,50,.14)'; ctx.lineWidth = 1;
   for (let i = 0; i < 26; i++){
     const y = (i / 26) * S + Math.sin(i * 1.7) * 4;
     ctx.beginPath();
@@ -893,7 +927,6 @@ function renderGo(){
     ctx.stroke();
   }
 
-  /* grid */
   ctx.strokeStyle = '#4a3418';
   ctx.lineWidth = Math.max(1, S * 0.0018);
   for (let i = 0; i < GO_N; i++){
@@ -904,7 +937,6 @@ function renderGo(){
   ctx.lineWidth = Math.max(1.6, S * 0.0034);
   ctx.strokeRect(m, m, S - 2 * m, S - 2 * m);
 
-  /* star points */
   ctx.fillStyle = '#4a3418';
   for (const [sx, sy] of STAR_POINTS){
     ctx.beginPath();
@@ -912,7 +944,6 @@ function renderGo(){
     ctx.fill();
   }
 
-  /* legal-point dots */
   if (!G.busy && !G.over && state.go){
     ctx.fillStyle = 'rgba(70,50,25,.17)';
     for (let i = 0; i < GO_SIZE; i++){
@@ -924,20 +955,17 @@ function renderGo(){
     }
   }
 
-  /* hover ghost */
   if (state.goHover !== null && board[state.goHover] === 0 && !G.busy && !G.over){
     const x = state.goHover % GO_N, y = (state.goHover / GO_N) | 0;
     drawStone(m + x * cell, m + y * cell, cell * 0.47, 1, 0.34);
   }
 
-  /* stones */
   for (let i = 0; i < GO_SIZE; i++){
     if (!board[i]) continue;
     const x = i % GO_N, y = (i / GO_N) | 0;
     drawStone(m + x * cell, m + y * cell, cell * 0.47, board[i]);
   }
 
-  /* last move marker */
   if (state.goLast !== null && board[state.goLast]){
     const x = state.goLast % GO_N, y = (state.goLast / GO_N) | 0;
     ctx.beginPath();
@@ -946,11 +974,9 @@ function renderGo(){
     ctx.fill();
   }
 
-  /* coordinates */
   ctx.font = `600 ${Math.max(8, cell * 0.30)}px ui-sans-serif,system-ui,sans-serif`;
   ctx.fillStyle = 'rgba(70,48,20,.55)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (let i = 0; i < GO_N; i++){
     ctx.fillText(FILES[i].toUpperCase(), m + i * cell, S - m * 0.45);
     ctx.fillText(String(GO_N - i), m * 0.45, m + i * cell);
@@ -958,7 +984,7 @@ function renderGo(){
 }
 
 /* ==========================================================================
-   7. RENDER DISPATCH
+   8.  RENDER DISPATCH
    ========================================================================== */
 function render(){
   if (!S) return;
@@ -967,10 +993,8 @@ function render(){
 }
 
 /* ==========================================================================
-   8. CHESS — game flow
+   9.  CHESS GAME FLOW
    ========================================================================== */
-const G_HUMAN_CHESS = 'w';
-
 function newChessGame(){
   state.chess = new Chess();
   state.selected = null;
@@ -999,23 +1023,20 @@ function applyChessMove(from, to, promotion){
   if (!game || game.game_over()) return false;
 
   const mover = game.turn();
-  const e0 = whiteEval(game, 2, 220);
+  const e0 = whiteEval(game, 2, 200);
 
   let mv = null;
   try { mv = game.move({ from, to, promotion: promotion || 'q' }); }
-  catch (e){ return false; }
+  catch (e) { mv = null; }
   if (!mv) return false;
 
-  const e1 = whiteEval(game, 2, 220);
+  const e1 = whiteEval(game, 2, 200);
   const loss = Math.max(0, mover === 'w' ? e0 - e1 : e1 - e0);
 
   state.chessLog.push({
-    san: mv.san,
-    color: mover,
-    loss,
+    san: mv.san, color: mover, loss,
     kind: classify(loss),
-    from,
-    to
+    from, to
   });
 
   state.lastMove = { from, to };
@@ -1026,8 +1047,16 @@ function applyChessMove(from, to, promotion){
   render();
   syncUI();
 
-  if (game.game_over()){ G.over = true; setTimeout(endChessGame, 400); return true; }
-  if (mover === G_HUMAN_CHESS) scheduleChessAI();
+  if (game.game_over()){
+    G.over = true;
+    setTimeout(endChessGame, 400);
+    return true;
+  }
+
+  /* schedule AI if it's now the AI's turn */
+  if (game.turn() !== G_HUMAN_CHESS){
+    scheduleChessAI();
+  }
   return true;
 }
 
@@ -1039,12 +1068,18 @@ function scheduleChessAI(){
 
   setTimeout(() => {
     if (gen !== G.gen) return;
-    const mv = chooseChessMove(state.chess, G.difficulty);
+    let mv = null;
+    try {
+      mv = chooseChessMove(state.chess, G.difficulty);
+    } catch (e){
+      console.error('AI error:', e);
+    }
     G.busy = false;
     if (gen !== G.gen) return;
+
     if (mv) applyChessMove(mv.from, mv.to, mv.promotion);
     else syncUI();
-  }, 160);
+  }, 180);
 }
 
 function undoChess(){
@@ -1058,7 +1093,9 @@ function undoChess(){
   }
 
   const hist = state.chess.history({ verbose: true });
-  state.lastMove = hist.length ? { from: hist[hist.length - 1].from, to: hist[hist.length - 1].to } : null;
+  state.lastMove = hist.length
+    ? { from: hist[hist.length - 1].from, to: hist[hist.length - 1].to }
+    : null;
   state.selected = null;
   state.targets = [];
   G.over = false;
@@ -1067,7 +1104,6 @@ function undoChess(){
   syncUI();
 }
 
-/* ---------- end of chess game ---------- */
 function endChessGame(){
   const game = state.chess;
   if (!game) return;
@@ -1084,20 +1120,15 @@ function endChessGame(){
     icon = humanWon ? '♔' : '♚';
   } else if (inDraw(game)){
     title = 'Draw';
-    sub = game.in_stalemate && game.in_stalemate() ? 'Stalemate' :
-          game.insufficient_material && game.insufficient_material() ? 'Insufficient material' :
-          game.in_threefold_repetition && game.in_threefold_repetition() ? 'Threefold repetition' :
+    sub = (game.in_stalemate && game.in_stalemate()) ? 'Stalemate' :
+          (game.insufficient_material && game.insufficient_material()) ? 'Insufficient material' :
+          (game.in_threefold_repetition && game.in_threefold_repetition()) ? 'Threefold repetition' :
           'Fifty-move rule';
-  } else {
-    title = 'Game over';
-    sub = 'The game has ended';
   }
 
-  /* ---- human stats ---- */
   const mine = state.chessLog.filter(p => p.color === G_HUMAN_CHESS);
   const counts = { best:0, good:0, inaccuracy:0, mistake:0, blunder:0 };
-  let totalLoss = 0;
-  let bestMove = null, worstMove = null;
+  let totalLoss = 0, bestMove = null, worstMove = null;
 
   mine.forEach(p => {
     counts[p.kind]++;
@@ -1110,11 +1141,9 @@ function endChessGame(){
   let accuracy = 103.1668 * Math.exp(-0.04354 * avgLoss) - 3.1669;
   accuracy = Math.max(0, Math.min(100, accuracy));
 
-  const total = mine.length || 1;
   const bar = ['best','good','inaccuracy','mistake','blunder']
     .map(k => `<div style="flex:${counts[k] || 0.0001};background:${KIND_COLOR[k]}"></div>`)
     .join('');
-
   const legend = ['best','good','inaccuracy','mistake','blunder']
     .map(k => `<div><i style="background:${KIND_COLOR[k]}"></i>${KIND_LABEL[k]} · ${counts[k]}</div>`)
     .join('');
@@ -1139,17 +1168,15 @@ function endChessGame(){
     </div>
     ${worstMove && worstMove.kind === 'blunder'
       ? `<div class="note"><b>${numOf(worstMove)} ${worstMove.san}</b> cost you about ${(worstMove.loss / 100).toFixed(2)} pawns — that was the turning point.</div>`
-      : `<div class="note">Solid game overall — you kept the evaluation stable across your moves.</div>`}
+      : `<div class="note">Solid game — you kept the evaluation stable across your moves.</div>`}
   `;
 
   showModal({ icon, iconCls, title, sub, body });
 }
 
 /* ==========================================================================
-   9. GO — game flow
+   10.  GO GAME FLOW
    ========================================================================== */
-const G_HUMAN_GO = 1;   // human plays Black
-
 function newGoGame(){
   state.go = new Int8Array(GO_SIZE);
   state.goKo = -1;
@@ -1179,21 +1206,19 @@ function applyGoMove(idx, color){
   state.goKo = res.ko;
   state.goLast = idx;
   state.goPasses = 0;
-
   if (color === 1) state.goCapB += res.captured;
   else state.goCapW += res.captured;
 
   state.goLog.push({
     san: goCoord(idx),
     color: color === 1 ? 'b' : 'w',
-    captured: res.captured,
-    kind: res.captured > 0 ? 'good' : 'best'
+    captured: res.captured
   });
 
   render();
   syncUI();
 
-  if (color === G_HUMAN_GO) scheduleGoAI();
+  if (color === G_HUMAN_GO && !G.over) scheduleGoAI();
   return true;
 }
 
@@ -1203,14 +1228,16 @@ function applyGoPass(color){
   state.goLog.push({
     san: 'pass',
     color: color === 1 ? 'b' : 'w',
-    captured: 0,
-    kind: 'good'
+    captured: 0
   });
-
   render();
   syncUI();
 
-  if (state.goPasses >= 2){ G.over = true; setTimeout(endGoGame, 350); return; }
+  if (state.goPasses >= 2){
+    G.over = true;
+    setTimeout(endGoGame, 350);
+    return;
+  }
   if (color === G_HUMAN_GO) scheduleGoAI();
 }
 
@@ -1222,23 +1249,29 @@ function scheduleGoAI(){
 
   setTimeout(() => {
     if (gen !== G.gen) return;
-    const mv = goChooseMove(state.go, 2, state.goKo, state.goCapB, state.goCapW, G.difficulty);
+    let mv = null;
+    try {
+      mv = goChooseMove(state.go, 2, state.goKo, state.goCapB, state.goCapW, G.difficulty);
+    } catch (e){
+      console.error('Go AI error:', e);
+      mv = { pass: true };
+    }
     G.busy = false;
     if (gen !== G.gen) return;
     if (mv.pass) applyGoPass(2);
     else applyGoMove(mv.idx, 2);
-  }, 160);
+  }, 180);
 }
 
 function undoGo(){
   if (G.busy || !state.goLog.length) return;
 
-  /* replay from scratch for correctness */
   const log = state.goLog.slice();
   log.pop();
   if (log.length && log[log.length - 1].color === 'w') log.pop();
 
-  const rebuilt = { board: new Int8Array(GO_SIZE), ko: -1, last: null, capB: 0, capW: 0, passes: 0 };
+  const rebuilt = { board: new Int8Array(GO_SIZE), ko: -1, last: null,
+                    capB: 0, capW: 0, passes: 0 };
   for (const p of log){
     if (p.san === 'pass'){ rebuilt.passes++; rebuilt.ko = -1; continue; }
     const x = FILES.indexOf(p.san[0].toLowerCase());
@@ -1270,7 +1303,6 @@ function endGoGame(){
   const sc = goScore(state.go);
   const blackTotal = sc.black + state.goCapB;
   const whiteTotal = sc.white + state.goCapW;
-
   const humanWon = blackTotal > whiteTotal;
   const diff = Math.abs(blackTotal - whiteTotal).toFixed(1);
 
@@ -1291,8 +1323,7 @@ function endGoGame(){
       <div><span>White captures</span><b>${state.goCapW}</b></div>
     </div>
     <div class="note">
-      Komi of <b>${GO_KOMI}</b> was added to White.
-      Total moves played: <b>${state.goLog.length}</b>.
+      Komi of <b>${GO_KOMI}</b> added to White. Total moves played: <b>${state.goLog.length}</b>.
     </div>
   `;
 
@@ -1304,7 +1335,7 @@ function endGoGame(){
 }
 
 /* ==========================================================================
-   10. MODAL
+   11.  MODAL
    ========================================================================== */
 function showModal({ icon, iconCls, title, sub, body }){
   $('modal-icon').textContent = icon;
@@ -1317,7 +1348,7 @@ function showModal({ icon, iconCls, title, sub, body }){
 function hideModal(){ $('modal').classList.add('hidden'); }
 
 /* ==========================================================================
-   11. SIDEBAR
+   12.  SIDEBAR / UI SYNC
    ========================================================================== */
 function syncUI(){
   const dot = $('turn-dot');
@@ -1343,7 +1374,6 @@ function syncUI(){
     else txt.textContent = turn === 1 ? 'Your move (Black)' : 'White to move';
     passBtn.classList.remove('hidden');
   }
-
   renderMoveList();
 }
 
@@ -1381,14 +1411,13 @@ function renderMoveList(){
 }
 
 /* ==========================================================================
-   12. POINTER INTERACTION
+   13.  POINTER INTERACTION
    ========================================================================== */
 function canvasPoint(e){
   const r = canvas.getBoundingClientRect();
   return { x: e.clientX - r.left, y: e.clientY - r.top };
 }
 
-/* ---------- chess ---------- */
 function selectSquare(sq){
   const game = state.chess;
   const piece = game.get(sq);
@@ -1418,7 +1447,7 @@ function attemptChessMove(from, to){
 }
 
 canvas.addEventListener('pointerdown', e => {
-  if (G.busy || G.over) return;
+  if (G.busy || G.over || G.screen !== 'game') return;
   const p = canvasPoint(e);
 
   if (G.mode === 'chess'){
@@ -1429,7 +1458,6 @@ canvas.addEventListener('pointerdown', e => {
       attemptChessMove(state.selected, sq);
       return;
     }
-
     const piece = state.chess.get(sq);
     if (piece && piece.color === state.chess.turn() && piece.color === G_HUMAN_CHESS){
       selectSquare(sq);
@@ -1450,8 +1478,10 @@ canvas.addEventListener('pointerdown', e => {
 });
 
 canvas.addEventListener('pointermove', e => {
+  if (G.screen !== 'game') return;
   if (G.mode === 'go'){
-    const pt = goPointAt(...Object.values(canvasPoint(e)));
+    const p = canvasPoint(e);
+    const pt = goPointAt(p.x, p.y);
     const next = pt ? pt.idx : null;
     if (next !== state.goHover){
       state.goHover = next;
@@ -1459,7 +1489,6 @@ canvas.addEventListener('pointermove', e => {
     }
     return;
   }
-
   if (!state.drag) return;
   const p = canvasPoint(e);
   state.drag.x = p.x;
@@ -1471,7 +1500,7 @@ canvas.addEventListener('pointermove', e => {
 });
 
 canvas.addEventListener('pointerup', e => {
-  if (G.mode !== 'chess' || !state.drag) return;
+  if (G.screen !== 'game' || G.mode !== 'chess' || !state.drag) return;
   const p = canvasPoint(e);
   const sq = squareAtPoint(p.x, p.y);
   const drag = state.drag;
@@ -1495,19 +1524,15 @@ canvas.addEventListener('pointerleave', () => {
   if (G.mode === 'go' && state.goHover !== null){ state.goHover = null; render(); }
 });
 
-/* ---------- promotion ---------- */
+/* ---------- promotion overlay ---------- */
+const PROMO_GLYPHS = { q:'♕', r:'♖', b:'♗', n:'♘' };
+
 function showPromo(){
   const opts = $('promo-options');
   opts.innerHTML = '';
   ['q','r','b','n'].forEach(type => {
     const btn = document.createElement('button');
-    const c = document.createElement('canvas');
-    c.width = 92; c.height = 92;
-    const cx = c.getContext('2d');
-    const oldCtx = ctx;
-    /* draw piece on a temporary context using the same routine */
-    drawPieceOn(cx, { type, color: G_HUMAN_CHESS }, 46, 46, 84);
-    btn.appendChild(c);
+    btn.textContent = PROMO_GLYPHS[type];
     btn.onclick = () => {
       $('promo').classList.add('hidden');
       const pending = state.pendingPromo;
@@ -1519,60 +1544,64 @@ function showPromo(){
   $('promo').classList.remove('hidden');
 }
 
-function drawPieceOn(c, piece, cx, cy, size){
-  const oldCtx = ctx;
-  /* temporarily swap the module-level ctx */
-  swapCtx(c);
-  drawPiece(piece, cx, cy, size);
-  restoreCtx(oldCtx);
-}
-let _ctxStack = [];
-function swapCtx(c){ _ctxStack.push(ctxRef); ctxRef = c; }
-function restoreCtx(){ ctxRef = _ctxStack.pop() || ctxRef; }
-
-/* Because `ctx` is a const, we proxy drawing through a mutable reference. */
-let ctxRef = canvas.getContext('2d');
-
 /* ==========================================================================
-   13. BOOT / WIRING
+   14.  SCREEN NAVIGATION
    ========================================================================== */
-function startGame(){
-  newChessGame();
-  newGoGame();
-  G.mode = 'chess';
-  syncUI();
-  render();
+function showScreen(id){
+  G.screen = id;
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + id));
+  if (id === 'game'){
+    requestAnimationFrame(() => { resize(); render(); syncUI(); });
+  }
 }
 
-$('mode-seg').addEventListener('click', e => {
-  const btn = e.target.closest('.seg');
-  if (!btn) return;
-  const mode = btn.dataset.mode;
-  if (mode === G.mode) return;
-
-  G.mode = mode;
+function startGame(){
   G.gen++;
   G.busy = false;
   G.over = false;
   hideModal();
+  $('badge-mode').textContent = G.mode === 'chess' ? 'Chess' : 'Go 9×9';
+  $('badge-diff').textContent = ['', 'Easy', 'Medium', 'Hard'][G.difficulty];
+  showScreen('game');
+  requestAnimationFrame(() => {
+    resize();
+    if (G.mode === 'chess') newChessGame();
+    else newGoGame();
+  });
+}
 
-  [...$('mode-seg').children].forEach(b => b.classList.toggle('active', b === btn));
+function goToSetup(){
+  G.gen++;
+  G.busy = false;
+  G.over = false;
+  hideModal();
+  showScreen('setup');
+}
 
-  if (mode === 'chess') newChessGame();
-  else newGoGame();
+/* ---------- wire UI ---------- */
+$('home-play').addEventListener('click', () => showScreen('setup'));
+$('setup-back').addEventListener('click', () => showScreen('home'));
+$('setup-start').addEventListener('click', startGame);
+$('game-menu').addEventListener('click', goToSetup);
+$('game-new').addEventListener('click', startGame);
+$('modal-menu').addEventListener('click', goToSetup);
+$('modal-again').addEventListener('click', startGame);
 
-  render();
-  syncUI();
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    G.mode = btn.dataset.mode;
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b === btn));
+  });
 });
-
-$('diff-seg').addEventListener('click', e => {
-  const btn = e.target.closest('.seg');
-  if (!btn) return;
-  G.difficulty = parseInt(btn.dataset.diff, 10);
-  [...$('diff-seg').children].forEach(b => b.classList.toggle('active', b === btn));
+document.querySelectorAll('[data-diff]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    G.difficulty = parseInt(btn.dataset.diff, 10);
+    document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('active', b === btn));
+  });
 });
 
 $('undo').addEventListener('click', () => {
+  if (G.busy) return;
   if (G.mode === 'chess') undoChess();
   else undoGo();
 });
@@ -1581,6 +1610,7 @@ $('reset').addEventListener('click', () => {
   G.gen++;
   G.busy = false;
   G.over = false;
+  hideModal();
   if (G.mode === 'chess') newChessGame();
   else newGoGame();
 });
@@ -1590,34 +1620,29 @@ $('pass').addEventListener('click', () => {
   applyGoPass(G_HUMAN_GO);
 });
 
-$('modal-review').addEventListener('click', hideModal);
-$('modal-new').addEventListener('click', () => {
-  G.gen++;
-  G.busy = false;
-  G.over = false;
-  if (G.mode === 'chess') newChessGame();
-  else newGoGame();
-});
-
 window.addEventListener('resize', resize);
 if (window.ResizeObserver) new ResizeObserver(resize).observe($('board-wrap'));
 
-/* boot once chess.js is available */
-(function boot(){
-  if (typeof Chess === 'undefined'){
-    const s = document.createElement('script');
-    s.src = 'https://unpkg.com/chess.js@0.10.2/chess.js';
-    s.onload = () => { resize(); startGame(); };
-    s.onerror = () => {
-      document.body.innerHTML =
-        '<div style="padding:40px;font:16px system-ui;color:#eee">⚠️ Could not load chess.js — check your internet connection and reload.</div>';
-    };
-    document.head.appendChild(s);
-  } else {
-    resize();
-    startGame();
-  }
-})();
+/* ==========================================================================
+   15.  BOOT
+   ========================================================================== */
+function boot(){
+  showScreen('home');
+  $('screen-home').classList.add('active');
+}
+
+if (typeof Chess === 'undefined'){
+  const s = document.createElement('script');
+  s.src = 'https://unpkg.com/chess.js@0.10.2/chess.js';
+  s.onload = boot;
+  s.onerror = () => {
+    document.body.innerHTML =
+      '<div style="padding:40px;font:16px system-ui;color:#eee">⚠️ Could not load chess.js — check your internet connection and reload.</div>';
+  };
+  document.head.appendChild(s);
+} else {
+  boot();
+}
 </script>
 </body>
 </html>
